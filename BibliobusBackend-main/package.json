@@ -1,0 +1,20 @@
+{
+  "name": "bibliobusbackend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon --watch . --ext js --exec \"node api/index.js\"",
+    "vercel-build": "npx prisma generate",
+    "start": "node api/index.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.16.2",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^4.1.11"
+  }
+}

@@ -1,0 +1,168 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+
+  directUrl = env("DATABASE_URL")
+}
+
+model User {
+  id          String    @id @default(cuid())
+  name        String
+  email       String    @unique
+  password    String
+  phone       String?
+  role        Role      @default(MEMBER)
+  qrCode      String?
+  activeUntil DateTime?
+  booksLimit  Int       @default(3)
+  finesOwed   Float     @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  reservations  Reservation[]
+  loans         Loan[]
+  notifications Notification[]
+  Delivery      Delivery[]
+  Transaction   Transaction[]
+}
+
+model Book {
+  id          String   @id @default(cuid())
+  title       String
+  author      String
+  isbn        String   @unique
+  genre       String?
+  description String?
+  coverImage  String?
+  available   Boolean  @default(true)
+  location    String? // biblioteka / bibliobus
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  reservations Reservation[]
+  loans        Loan[]
+}
+
+model Reservation {
+  id        String            @id @default(cuid())
+  userId    String
+  bookId    String
+  status    ReservationStatus @default(PENDING)
+  createdAt DateTime          @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  book Book @relation(fields: [bookId], references: [id])
+}
+
+model Loan {
+  id        String   @id @default(cuid())
+  userId    String
+  bookId    String
+  dueDate   DateTime
+  returned  Boolean  @default(false)
+  comment   String?
+  createdAt DateTime @default(now())
+
+  user     User       @relation(fields: [userId], references: [id])
+  book     Book       @relation(fields: [bookId], references: [id])
+  Delivery Delivery[]
+}
+
+model BusStop {
+  id        String   @id @default(cuid())
+  name      String
+  location  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  routes BusRoute[]
+}
+
+model BusRoute {
+  id        String    @id @default(cuid())
+  name      String
+  dayOfWeek DayOfWeek
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  stops BusStop[]
+}
+
+model Delivery {
+  id        String         @id @default(cuid())
+  loanId    String
+  driverId  String?
+  status    DeliveryStatus @default(PENDING)
+  photoUrl  String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  loan   Loan  @relation(fields: [loanId], references: [id])
+  driver User? @relation(fields: [driverId], references: [id])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  message   String
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Transaction {
+  id        String          @id @default(cuid())
+  userId    String
+  amount    Float
+  type      TransactionType
+  createdAt DateTime        @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+enum Role {
+  ADMIN
+  LIBRARIAN
+  DRIVER
+  MEMBER
+}
+
+enum ReservationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum DeliveryStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum NotificationType {
+  DELIVERY
+  RETURN_REMINDER
+  SYSTEM
+}
+
+enum TransactionType {
+  FINE
+  PAYMENT
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
